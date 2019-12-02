@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+<!--  配置连接池  -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/SSH?characterEncoding=UTF-8"></property>
+        <property name="user" value="root"></property>
+        <property name="password" value="root3306"></property>
+
+    </bean>
+
+    <!-- sessionFactory创建交给spring管理 -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <!-- 配置hibernate基本信息 -->
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+            </props>
+        </property>
+        <!-- 配置映射文件引入 -->
+        <property name="mappingResources">
+            <list>
+                <value>com/llc/entity/User.hbm.xml</value>
+            </list>
+        </property>
+
+    </bean>
+
+<!--  配置hibernateTemplate  -->
+    <bean id="iUserDAOImpl" class="com.llc.dao.impl.IUserDAOImpl">
+        <property name="hibernateTemplate" ref="hibernateTemplate"></property>
+    </bean>
+    <bean id="hibernateTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">
+        <property name="sessionFactory" ref="sessionFactory"></property>
+    </bean>
+<!--  配置事物  -->
+    <bean id="hibernateTransactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"></property>
+    </bean>
+<!--  开启事物注解  -->
+    <tx:annotation-driven transaction-manager="hibernateTransactionManager"></tx:annotation-driven>
+
+<!--  创建对象  -->
+    <bean id="userService" class="com.llc.service.UserService">
+        <property name="iUserDAO" ref="iUserDAOImpl"></property>
+    </bean>
+
+    <!--  把action交给spring管理  -->
+    <bean id="useraction" class="com.llc.action.userAction" scope="prototype">
+        <property name="userService" ref="userService"></property>
+    </bean>
+</beans>
+
+
+
+
+
+
+
+
